@@ -45,7 +45,7 @@
     }
     
     function Start() {
-        console.log("App Started!")
+        console.log("App Started Successfully!")
 
         switch (document.title) {
             case "Home - WEBD6201 Demo":
