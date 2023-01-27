@@ -19,7 +19,7 @@
         // concatenation - '1' + '2' + '3'
         // interpolation - `${var_1}`
         let firstString = "This is a "
-        let secondString = `${ firstString } main paragraph that we added through javascript`
+        let secondString = `${ firstString } main paragraph that we added through javascript and this is also on GitHub Pages`
         mainParagraph.textContent = secondString
 
         /**
@@ -49,9 +49,6 @@
 
         switch (document.title) {
             case "Home - WEBD6201 Demo":
-                DisplayButton()
-                break
-            case "Projects - WEBD6201 Demo":
                 DisplayButton()
                 break
         }
