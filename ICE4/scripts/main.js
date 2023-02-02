@@ -42,6 +42,8 @@
         //         <p class="mt-5 lead">and... what do you this of this method?</p>
         //     </div>
         // `
+        let sohaib = new Contact("Sohaib Mohiuddin", "6471234567", "sohaib.mohiuddin@durhamcollege.ca")
+        console.log(sohaib.toString())
     }
     
     function Start() {
