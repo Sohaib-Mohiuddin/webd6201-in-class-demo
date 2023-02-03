@@ -44,7 +44,7 @@
         submitButton.addEventListener("click", function(event) {
             event.preventDefault()
             if (subscribeCheckbox.checked) {
-                console.log("The user has subscribed")
+                console.log("The user has subscribed");
             }
         })
     }
