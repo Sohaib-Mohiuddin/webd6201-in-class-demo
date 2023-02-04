@@ -41,16 +41,56 @@
         let submitButton = document.getElementById("submitButton")
         let subscribeCheckbox = document.getElementById("subscribeCheckbox")
 
-        submitButton.addEventListener("click", function(event) {
-            event.preventDefault()
+        // localStorage Example
+        // localStorage.setItem("Random Variable", "random variable for testing and demonstration")
+        // console.log(localStorage.getItem("Random Variable"))
+        // localStorage.removeItem("Random Variable")
+
+        submitButton.addEventListener("click", function() {
+            // event.preventDefault()
             if (subscribeCheckbox.checked) {
-                console.log("The user has subscribed");
+                // If user subscribes, store the contact in localStorage
+                let contact = new Contact(fullName.value, contactNumber.value, emailAddress.value)
+                if (contact.serialize()) {
+                    let key = contact.Name.substring(0, 1) + Date.now()
+                    localStorage.setItem(key, contact.serialize())
+                }
             }
         })
     }
 
     function DisplayContactList() {
-        console.log("Contact List Page")
+        if (localStorage.length > 0) {
+            let contactList = document.getElementById("contactList") // Our contact list in the table of the contact-list page
+
+            let data = "" // Add data to this variable. Append deserialized data from localStorage to data
+            let keys = Object.keys(localStorage) // Return a String Array of keys
+
+            let index = 1 // Count number of keys
+
+            // for every key in the keys collection
+            for (const key of keys) {
+                let contactData = localStorage.getItem(key) // Get localStorage data value related to the key
+                let contact = new Contact()
+                
+                contact.deserialize(contactData)
+
+                // Inject repeatable row into the contactList
+                data += `<tr>
+                    <th scope="row" class="text-center">${ index }</th>
+                    <td class="text-center">${ contact.Name }</td>
+                    <td class="text-center">${ contact.ContactNumber }</td>
+                    <td class="text-center">${ contact.EmailAddress }</td>
+                    <td class="text-center"></td>
+                    <td class="text-center"></td>
+                </tr>
+                `
+
+                index++
+            }
+
+            contactList.innerHTML = data
+        }
     }
 
     function DisplayReferences() {
