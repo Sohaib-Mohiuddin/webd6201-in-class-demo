@@ -1,6 +1,20 @@
 (function () {
 
     function DisplayHome() {
+        // (2) Second biggest memory footprint.. returns collection of elements
+        // NEW JavaScript QuerySelectorAll - Get all elements with id RandomButton for each element, loop...
+        // document.querySelectorAll("#RandomButton").forEach(element => {
+        //     element.addEventListener("click", () => {
+        //         location.href = "contact.html"
+        //     })
+        // })
+
+        // (3) Relatively small memory footprint
+        // NEw Javascript QuerySelector - Get an element with id RandomButton for add "click"
+        // document.querySelector("#RandomButton").addEventListener("click", () => {
+        //     location.href = "contact.html"
+        // })
+        
         let randomButton = document.getElementById("RandomButton")
         randomButton.addEventListener("click", function() {
             location.href = 'projects.html'
