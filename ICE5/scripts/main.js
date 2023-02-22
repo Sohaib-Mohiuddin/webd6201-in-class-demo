@@ -72,6 +72,13 @@
             }
 
             contactList.innerHTML = data
+
+            $("button.delete").on("click", function() {
+                if (confirm("Are you sure you want to delete this?")) // Confirm method is reserved for prompts/confirmations
+                    localStorage.removeItem($(this).val())
+
+                location.href = 'contact-list.html' // Refresh page
+            })
         }
     }
 
