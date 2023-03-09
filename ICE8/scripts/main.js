@@ -1,6 +1,14 @@
 (function () {
 
-    function DisplayNavBar() {
+    /**
+     * This function uses AJAX to open a connection to the server and returns 
+     * a data payload to the callback function
+     *
+     * @param {string} method
+     * @param {string} url
+     * @param {function} callback
+     */
+    function AjaxRequest(method, url, callback) {
         // AJAX
         // instantiate the XHR Object
         let XHR = new XMLHttpRequest()
@@ -8,15 +16,29 @@
         // add event listener for readystatechange
         XHR.addEventListener("readystatechange", () => {
             if (XHR.readyState === 4 && XHR.status === 200) {
-                $('#navigationBar').html(XHR.responseText)
+                if (typeof callback === 'function') {
+                    callback(XHR.responseText)
+                } else {
+                    console.error("ERROR: callback is not a function")
+                }
             }
         })
 
         // connect and get data
-        XHR.open("GET", "./static/header.html")
+        XHR.open(method, url)
 
         // send request to server to await response
         XHR.send()
+    }
+
+    /**
+     * Load the static header 
+     *
+     * @param {HTML} html_data
+     */
+    function LoadHeader(html_data) {
+        $('#navigationBar').html(html_data)
+        $(`li>a:contains(${ document.title })`).addClass('active')
     }
 
     function DisplayHome() {
@@ -210,30 +232,31 @@
     function Start() {
         console.log("App Started Successfully!")
 
+        AjaxRequest("GET", "./static/header.html", LoadHeader)
+
         switch (document.title) {
-            case "Home - WEBD6201 Demo":
+            case "Home":
                 DisplayHome()
-                DisplayNavBar()
                 break
-            case "Projects - WEBD6201 Demo":
+            case "Projects":
                 DisplayProjects()
                 break
-            case "Contact Us - WEBD6201 Demo":
+            case "Contact Us":
                 DisplayContacts()
                 break
-            case "Contact List - WEBD6201 Demo":
+            case "Contact List":
                 DisplayContactList()
                 break
-            case "References - WEBD6201 Demo":
+            case "References":
                 DisplayReferences()
                 break
-            case "Edit - WEBD6201 Demo":
+            case "Edit":
                 DisplayEditPage()
                 break
-            case "Login - WEBD6201 Demo":
+            case "Login":
                 DisplayLoginPage()
                 break
-            case "Register - WEBD6201 Demo":
+            case "Register":
                 DisplayRegisterPage()
                 break
         }
