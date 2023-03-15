@@ -39,6 +39,7 @@
     function LoadHeader(html_data) {
         $('#navigationBar').html(html_data)
         $(`li>a:contains(${ document.title })`).addClass('active')
+        CheckLogin()
     }
 
     function DisplayHome() {
@@ -221,8 +222,77 @@
         console.log("References Page")
     }
 
-    function DispayLoginPage() {
+    function DisplayLoginPage() {
         console.log("Login Page")
+
+        let messageArea = $('#messageArea')
+        messageArea.hide()
+
+        $('#loginButton').on('click', function() {
+            let success = false
+
+            // create an empty user object
+            let newUser = new core.User()
+
+            // use JQuery to load users.json file and read over it
+            $.get('./Data/users.json', function(data) {
+                // iterate over every user in the users.json file... for loop
+                for (const user of data.users) {
+                    // check if the username and password match the user data
+                    // passed in from users.json
+                    if (username.value == user.Username && password.value == user.Password) {
+                        newUser.fromJSON(user)
+                        success = true
+                        break
+                    }
+                }
+
+                // if username and password matched (success = true) -> perform the login sequence
+                if (success) {
+                    // add user to sessionStorage
+                    sessionStorage.setItem('user', newUser.serialize())
+
+                    // hide any error messages
+                    // missing a part of this code
+                    messageArea.removeAttr('class').hide()
+
+                    // redirect the user to the secure area of our website - contact-list.html
+                    location.href = 'contact-list.html'
+                } else {
+                    // display the error message
+                    $('#username').trigger('focus').trigger('select')
+                    messageArea.addClass('alert alert-danger').text('Error: Invalid Login Credentials.. Username/Password Mismatch').show()
+                }
+            })
+
+            
+        })
+
+        $('#cancelButton').on('click', function() {
+            // clear the form
+            document.form[0].reset()
+
+            // return to home page
+            location.href = 'index.html'
+        })
+    }
+
+    function CheckLogin() {
+        // if the user is logged in, then
+        if (sessionStorage.getItem("user")) {
+            // switch the login button to logout
+            $('#login').html(
+                `<a id="logout" class="nav-link" href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>`
+            )
+
+            $('#logout').on('click', function() {
+                // perform logout
+                sessionStorage.clear()
+
+                // redirect to login.html
+                location.href = 'login.html'
+            })
+        }
     }
     
     function DisplayRegisterPage() {
