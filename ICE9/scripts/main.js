@@ -37,14 +37,42 @@
      * @param {HTML} html_data
      */
     function LoadHeader(html_data) {
-        $('#navigationBar').html(html_data)
-        $(`li>a:contains(${ document.title })`).addClass('active')
+        $.get('./Views/components/header.html', function(html_data) {
+            $('#navigationBar').html(html_data)
+
+            document.title = router.ActiveLink.substring(0, 2).toUpperCase() + router.ActiveLink.substring(2)
+            $(`li>a:contains(${ document.title })`).addClass('active')
+        })
+        
         CheckLogin()
+    }
+
+    /**
+     * This function loads content
+     * @returs {void}
+     */
+    function LoadContent() {
+        let pageName = router.ActiveLink
+        $.get(`./Views/content/${ pageName }.html`, function(html_data) {
+            $('main').html(html_data)
+
+            ActiveLinkCallBack()
+        })
+    }
+
+    /**
+     * This function loads footer
+     * @returns {void}
+     */
+    function LoadFooter() {
+        $.get('./Views/components/footer.html', function(html_data) {
+            $('footer').html(html_data)
+        })
     }
 
     function DisplayHome() {
         $("#RandomButton").on("click", function() {
-            location.href = 'contact.html'
+            location.href = '/contact'
         })
 
         // concatenation - '1' + '2' + '3'
@@ -152,16 +180,16 @@
                 if (confirm("Are you sure you want to delete this?"))
                     localStorage.removeItem($(this).val())
 
-                location.href = 'contact-list.html'
+                location.href = '/contact-list'
             })
 
             $("button.edit").on("click", function() {
-                location.href = 'edit.html#' + $(this).val()
+                location.href = '/edit#' + $(this).val()
             })
         }
 
         $("#addButton").on("click", () => {
-            location.href = 'edit.html#Add'
+            location.href = '/edit#Add'
         })
     }
 
@@ -183,7 +211,7 @@
                         AddContact(fullName.value, contactNumber.value, emailAddress.value)
 
                         // redirect to contact-list
-                        location.href = 'contact-list.html'
+                        location.href = '/contact-list'
                     })
                 }
                 break
@@ -211,7 +239,7 @@
                         localStorage.setItem(page, contact.serialize())
 
                         // go back to contact-list.html
-                        location.href = 'contact-list.html'
+                        location.href = '/contact-list'
                     })
                 }
                 break
@@ -257,7 +285,7 @@
                     messageArea.removeAttr('class').hide()
 
                     // redirect the user to the secure area of our website - contact-list.html
-                    location.href = 'contact-list.html'
+                    location.href = '/contact-list'
                 } else {
                     // display the error message
                     $('#username').trigger('focus').trigger('select')
@@ -273,7 +301,7 @@
             document.form[0].reset()
 
             // return to home page
-            location.href = 'index.html'
+            location.href = '/home'
         })
     }
 
@@ -290,7 +318,7 @@
                 sessionStorage.clear()
 
                 // redirect to login.html
-                location.href = 'login.html'
+                location.href = '/login'
             })
         }
     }
@@ -298,13 +326,42 @@
     function DisplayRegisterPage() {
         console.log("Registration Page")
     }
+
+    function Display404Page() {
+        console.log("404 Page")
+    }
+
+    /**
+     * @returns {function}
+     */
+    function ActiveLinkCallBack() {
+        console.log(`ActiveLinkCallBack - ${ router.ActiveLink }`)
+        switch (router.ActiveLink) {
+            case "home": return DisplayHome()
+            case "projects": return DisplayProjects()
+            case "contact": return DisplayContacts()
+            case "contact-list": return DisplayContactList()
+            case "references": return DisplayReferences()
+            case "edit": return DisplayEditPage()
+            case "login": return DisplayLoginPage()
+            case "register": return DisplayRegisterPage()
+            case "404": return Display404Page()
+            default:
+                console.error(`Error: Callback does not Exist... ${ router.ActiveLink }`);
+        }
+    }
     
     function Start() {
         console.log("App Started Successfully!")
 
-        AjaxRequest("GET", "./static/header.html", LoadHeader)
+        // AjaxRequest("GET", "./static/header.html", LoadHeader)
+        LoadHeader()
 
-        switch (document.title) {
+        LoadContent()
+
+        LoadFooter()
+
+        /* switch (document.title) {
             case "Home":
                 DisplayHome()
                 break
@@ -329,7 +386,7 @@
             case "Register":
                 DisplayRegisterPage()
                 break
-        }
+        } */
         
 
     }
