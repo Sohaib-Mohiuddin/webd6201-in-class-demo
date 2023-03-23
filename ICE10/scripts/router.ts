@@ -2,6 +2,7 @@ namespace core{
     export class Router {
         // private instance variables
         private m_activeLink: string
+        private m_linkData: string
         private m_routingTable: string[]
 
         // public properties: get and set
@@ -20,12 +21,27 @@ namespace core{
         }
 
         /**
+         * @returns {string}
+         */
+        public get LinkData(): string {
+            return this.m_linkData
+        }
+
+        /**
+         * @params {string} link
+         */
+        public set LinkData(data: string) {
+            this.m_linkData = data
+        }
+
+        /**
          * Creates an instance of Router.
          * 
          * @constructor
          */
         constructor() {
             this.m_activeLink = ""
+            this.m_linkData = ""
             this.m_routingTable = [] // new Array<string>()
         }
 

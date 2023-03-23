@@ -1,34 +1,80 @@
 (function () {
 
-    /**
-     * This function uses AJAX to open a connection to the server and returns 
-     * a data payload to the callback function
-     *
-     * @param {string} method
-     * @param {string} url
-     * @param {Function} callback
-     */
-    function AjaxRequest(method: string, url: string, callback: Function) {
-        // AJAX
-        // instantiate the XHR Object
-        let XHR = new XMLHttpRequest()
-
-        // add event listener for readystatechange
-        XHR.addEventListener("readystatechange", () => {
-            if (XHR.readyState === 4 && XHR.status === 200) {
-                if (typeof callback === 'function') {
-                    callback(XHR.responseText)
-                } else {
-                    console.error("ERROR: callback is not a function")
-                }
+    function AuthGuard(): void {
+        let protectedRoutes: string[] = [
+            'contact-list'
+        ]
+    
+        if (protectedRoutes.indexOf(router.ActiveLink) > -1) {
+            // check if user is logged in
+            if (!sessionStorage.getItem("user")) {
+                // redirect the user to login.html
+                router.ActiveLink = 'login'
             }
+        }
+    }
+
+    function LoadLink(link: string, data: string = ""): void {
+        router.ActiveLink = link
+
+        AuthGuard()
+
+        router.LinkData = data
+        history.pushState({}, "", router.ActiveLink)
+
+        document.title = router.ActiveLink.substring(0, 1).toUpperCase() + router.ActiveLink.substring(1)
+
+        // remove all active links
+        $('ul>li>a').each(function() {
+            $(this).removeClass('active')
         })
 
-        // connect and get data
-        XHR.open(method, url)
+        $(`li>a:contains(${ document.title })`).addClass('active')
 
-        // send request to server to await response
-        XHR.send()
+        LoadContent()
+    }
+
+    function AddNavigationEvents(): void {
+        let navLinks = $('ul>li>a') // get all navigation links
+
+        // remove navigation events
+        navLinks.off('click')
+        navLinks.off('mouseover')
+
+        // loop through each navigation link and load the appropriate content/data on click
+        navLinks.on('click', function() {
+            LoadLink($(this).attr('data') as string)
+        })
+
+        // make the nvigation links look clickable
+        navLinks.on('mouseover', function() {
+            $(this).css('cursor', 'pointer')
+        })
+    }
+
+    function AddLinkEvents(link: string): void {
+        let linkQuery = $(`a.link[data=${ link }]`)
+
+        // remove all link events
+        linkQuery.off('click')
+        linkQuery.off('mouseover')
+        linkQuery.off('mouseout')
+
+        // add css to adjust the link aesthetics
+        linkQuery.css('text-decoration', 'underline')
+        linkQuery.css('color', 'blue')
+
+        // add link events
+        linkQuery.on('click', function() {
+            LoadLink(`${ link }`)
+        })
+        linkQuery.on('mouseover', function() {
+            $(this).css('cursor', 'pointer')
+            $(this).css('font-weight', 'bold')
+        })
+        linkQuery.on('mouseout', function() {
+            $(this).css('font-weight', 'normal')
+        })
     }
 
     /**
@@ -40,8 +86,7 @@
         $.get('./Views/components/header.html', function(html_data) {
             $('#navigationBar').html(html_data)
 
-            document.title = router.ActiveLink.substring(0, 2).toUpperCase() + router.ActiveLink.substring(2)
-            $(`li>a:contains(${ document.title })`).addClass('active')
+            AddNavigationEvents()
 
             CheckLogin()
         })
@@ -58,6 +103,8 @@
         console.log(pageName);
         $.get(`./Views/content/${ pageName }.html`, function(html_data) {
             $('main').html(html_data)
+
+            CheckLogin()
 
             ActiveLinkCallBack()
         })
@@ -137,6 +184,11 @@
     function DisplayContacts(): Function {
         console.log("Contact Us Page")
 
+        $('a[data="contact-list"]').off('click')
+        $('a[data="contact-list"]').on('click', function() {
+            LoadLink('contact-list')
+        })
+
         ContactFormValidate()
 
         let submitButton = document.getElementById("submitButton") as HTMLElement
@@ -197,16 +249,19 @@
                 if (confirm("Are you sure you want to delete this?"))
                     localStorage.removeItem($(this).val() as string)
 
-                location.href = '/contact-list'
+                // location.href = '/contact-list'
+                LoadLink('contact-list')
             })
 
             $("button.edit").on("click", function() {
-                location.href = '/edit#' + $(this).val()
+                // location.href = '/edit#' + $(this).val()
+                LoadLink('edit', $(this).val() as string)
             })
         }
 
         $("#addButton").on("click", () => {
-            location.href = '/edit#Add'
+            // location.href = '/edit#Add'
+            LoadLink('edit', 'Add')
         })
 
         return new Function()
@@ -214,7 +269,8 @@
 
     function DisplayEditPage(): Function {
         ContactFormValidate()
-        let page = location.hash.substring(1)
+
+        let page = router.LinkData
 
         switch(page) {
             case "Add":
@@ -234,7 +290,8 @@
                         AddContact(fullName, contactNumber, emailAddress)
 
                         // redirect to contact-list
-                        location.href = '/contact-list'
+                        // location.href = '/contact-list'
+                        LoadLink('contact-list')
                     })
                 }
                 break
@@ -262,7 +319,13 @@
                         localStorage.setItem(page, contact.serialize() as string)
 
                         // go back to contact-list.html
-                        location.href = '/contact-list'
+                        // location.href = '/contact-list'
+                        LoadLink('contact-list')
+                    })
+
+                    $("#resetButton").on("click", () => {
+                        // location.href = '/contact-list'
+                        LoadLink('contact-list')
                     })
                 }
                 break
@@ -282,6 +345,8 @@
 
         let messageArea = $('#messageArea')
         messageArea.hide()
+
+        AddLinkEvents('register')
 
         $('#loginButton').on('click', function() {
             let success = false
@@ -316,7 +381,8 @@
                     messageArea.removeAttr('class').hide()
 
                     // redirect the user to the secure area of our website - contact-list.html
-                    location.href = '/contact-list'
+                    // location.href = '/contact-list'
+                    LoadLink('contact-list')
                 } else {
                     // display the error message
                     $('#username').trigger('focus').trigger('select')
@@ -332,7 +398,8 @@
             document.forms[0].reset()
 
             // return to home page
-            location.href = '/home'
+            // location.href = '/home'
+            LoadLink('home')
         })
 
         return new Function()
@@ -350,14 +417,24 @@
                 // perform logout
                 sessionStorage.clear()
 
+                // switch logout link to login link
+                $('#login').html(
+                    `<a class="nav-link" data="login"><i class="fas fa-sign-in-alt"></i> Login</a>`
+                )
+
+                AddNavigationEvents()
+
                 // redirect to login.html
-                location.href = '/login'
+                // location.href = '/login'
+                LoadLink('login')
             })
         }
     }
     
     function DisplayRegisterPage(): Function {
         console.log("Registration Page")
+
+        AddLinkEvents('login')
 
         return new Function()
     }
@@ -392,39 +469,12 @@
     function Start() {
         console.log("App Started Successfully!")
 
-        // AjaxRequest("GET", "./static/header.html", LoadHeader)
         LoadHeader()
 
-        LoadContent()
+        // LoadContent()
+        LoadLink("home")
 
         LoadFooter()
-
-        /* switch (document.title) {
-            case "Home":
-                DisplayHome()
-                break
-            case "Projects":
-                DisplayProjects()
-                break
-            case "Contact Us":
-                DisplayContacts()
-                break
-            case "Contact List":
-                DisplayContactList()
-                break
-            case "References":
-                DisplayReferences()
-                break
-            case "Edit":
-                DisplayEditPage()
-                break
-            case "Login":
-                DisplayLoginPage()
-                break
-            case "Register":
-                DisplayRegisterPage()
-                break
-        } */
         
 
     }
