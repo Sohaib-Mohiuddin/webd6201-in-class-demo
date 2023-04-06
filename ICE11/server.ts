@@ -15,7 +15,7 @@ const normalizePort = (val: string) => {
     return false
 }
 
-const port = normalizePort(process.env.PORT || '3010') as number
+const port = normalizePort(process.env.PORT || '3011') as number
 app.set('port', port)
 
 // Event listening for HTTP server 'error' event

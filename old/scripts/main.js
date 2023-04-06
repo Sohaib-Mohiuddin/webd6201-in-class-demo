@@ -2,14 +2,78 @@
 (function () {
     function AuthGuard() {
         let protectedRoutes = [
-            '/contact-list',
-            '/edit'
+            'contact-list'
         ];
-        if (protectedRoutes.indexOf(location.pathname) > -1) {
+        if (protectedRoutes.indexOf(router.ActiveLink) > -1) {
             if (!sessionStorage.getItem("user")) {
-                location.href = '/login';
+                router.ActiveLink = 'login';
             }
         }
+    }
+    function LoadLink(link, data = "") {
+        router.ActiveLink = link;
+        AuthGuard();
+        router.LinkData = data;
+        history.pushState({}, "", router.ActiveLink);
+        document.title = router.ActiveLink.substring(0, 1).toUpperCase() + router.ActiveLink.substring(1);
+        $('ul>li>a').each(function () {
+            $(this).removeClass('active');
+        });
+        $(`li>a:contains(${document.title})`).addClass('active');
+        LoadContent();
+    }
+    function AddNavigationEvents() {
+        let navLinks = $('ul>li>a');
+        navLinks.off('click');
+        navLinks.off('mouseover');
+        navLinks.on('click', function () {
+            LoadLink($(this).attr('data'));
+        });
+        navLinks.on('mouseover', function () {
+            $(this).css('cursor', 'pointer');
+        });
+    }
+    function AddLinkEvents(link) {
+        let linkQuery = $(`a.link[data=${link}]`);
+        linkQuery.off('click');
+        linkQuery.off('mouseover');
+        linkQuery.off('mouseout');
+        linkQuery.css('text-decoration', 'underline');
+        linkQuery.css('color', 'blue');
+        linkQuery.on('click', function () {
+            LoadLink(`${link}`);
+        });
+        linkQuery.on('mouseover', function () {
+            $(this).css('cursor', 'pointer');
+            $(this).css('font-weight', 'bold');
+        });
+        linkQuery.on('mouseout', function () {
+            $(this).css('font-weight', 'normal');
+        });
+    }
+    function LoadHeader() {
+        $.get('./Views/components/header.html', function (html_data) {
+            $('#navigationBar').html(html_data);
+            AddNavigationEvents();
+            CheckLogin();
+        });
+        return new Function();
+    }
+    function LoadContent() {
+        let pageName = router.ActiveLink;
+        console.log(pageName);
+        $.get(`./Views/content/${pageName}.html`, function (html_data) {
+            $('main').html(html_data);
+            CheckLogin();
+            ActiveLinkCallBack();
+        });
+        return new Function();
+    }
+    function LoadFooter() {
+        $.get('./Views/components/footer.html', function (html_data) {
+            $('footer').html(html_data);
+        });
+        return new Function();
     }
     function DisplayHome() {
         $("#RandomButton").on("click", function () {
@@ -52,9 +116,9 @@
     }
     function DisplayContacts() {
         console.log("Contact Us Page");
-        $('a[href="/contact-list"]').off('click');
-        $('a[href="/contact-list"]').on('click', function () {
-            location.href = '/contact-list';
+        $('a[data="contact-list"]').off('click');
+        $('a[data="contact-list"]').on('click', function () {
+            LoadLink('contact-list');
         });
         ContactFormValidate();
         let submitButton = document.getElementById("submitButton");
@@ -98,21 +162,20 @@
             $("button.delete").on("click", function () {
                 if (confirm("Are you sure you want to delete this?"))
                     localStorage.removeItem($(this).val());
-                location.href = '/contact-list';
+                LoadLink('contact-list');
             });
             $("button.edit").on("click", function () {
-                location.href = '/edit#' + $(this).val();
+                LoadLink('edit', $(this).val());
             });
         }
         $("#addButton").on("click", () => {
-            location.href = '/edit#Add';
+            LoadLink('edit', 'Add');
         });
         return new Function();
     }
     function DisplayEditPage() {
         ContactFormValidate();
-        let page = location.hash.substring(1);
-        console.log(page);
+        let page = router.LinkData;
         switch (page) {
             case "Add":
                 {
@@ -124,7 +187,7 @@
                         let contactNumber = document.forms[0].contactNumber.value;
                         let emailAddress = document.forms[0].emailAddress.value;
                         AddContact(fullName, contactNumber, emailAddress);
-                        location.href = '/contact-list';
+                        LoadLink('contact-list');
                     });
                 }
                 break;
@@ -141,10 +204,10 @@
                         contact.ContactNumber = $("#contactNumber").val();
                         contact.EmailAddress = $("#emailAddress").val();
                         localStorage.setItem(page, contact.serialize());
-                        location.href = '/contact-list';
+                        LoadLink('contact-list');
                     });
                     $("#resetButton").on("click", () => {
-                        location.href = '/contact-list';
+                        LoadLink('contact-list');
                     });
                 }
                 break;
@@ -159,6 +222,7 @@
         console.log("Login Page");
         let messageArea = $('#messageArea');
         messageArea.hide();
+        AddLinkEvents('register');
         $('#loginButton').on('click', function () {
             let success = false;
             let newUser = new core.User();
@@ -175,7 +239,7 @@
                 if (success) {
                     sessionStorage.setItem('user', newUser.serialize());
                     messageArea.removeAttr('class').hide();
-                    location.href = '/contact-list';
+                    LoadLink('contact-list');
                 }
                 else {
                     $('#username').trigger('focus').trigger('select');
@@ -185,7 +249,7 @@
         });
         $('#cancelButton').on('click', function () {
             document.forms[0].reset();
-            location.href = '/home';
+            LoadLink('home');
         });
         return new Function();
     }
@@ -194,45 +258,43 @@
             $('#login').html(`<a id="logout" class="nav-link" href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>`);
             $('#logout').on('click', function () {
                 sessionStorage.clear();
-                $('#login').html(`<a class="nav-link" href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>`);
-                location.href = '/login';
+                $('#login').html(`<a class="nav-link" data="login"><i class="fas fa-sign-in-alt"></i> Login</a>`);
+                AddNavigationEvents();
+                LoadLink('login');
             });
         }
     }
     function DisplayRegisterPage() {
         console.log("Registration Page");
+        AddLinkEvents('login');
         return new Function();
     }
     function Display404Page() {
         console.log("404 Page");
         return new Function();
     }
+    function ActiveLinkCallBack() {
+        console.log(`ActiveLinkCallBack - ${router.ActiveLink}`);
+        switch (router.ActiveLink) {
+            case "home": return DisplayHome();
+            case "projects": return DisplayProjects();
+            case "contact": return DisplayContacts();
+            case "contact-list": return DisplayContactList();
+            case "references": return DisplayReferences();
+            case "edit": return DisplayEditPage();
+            case "login": return DisplayLoginPage();
+            case "register": return DisplayRegisterPage();
+            case "404": return Display404Page();
+            default:
+                console.error(`Error: Callback does not Exist... ${router.ActiveLink}`);
+                return new Function();
+        }
+    }
     function Start() {
         console.log("App Started Successfully!");
-        let pageId = $('body')[0].getAttribute('id');
-        CheckLogin();
-        switch (pageId) {
-            case "home":
-                DisplayHome();
-            case "projects":
-                DisplayProjects();
-            case "contact":
-                DisplayContacts();
-            case "contact-list":
-                AuthGuard();
-                DisplayContactList();
-            case "references":
-                DisplayReferences();
-            case "edit":
-                AuthGuard();
-                DisplayEditPage();
-            case "login":
-                DisplayLoginPage();
-            case "register":
-                DisplayRegisterPage();
-            case "404":
-                Display404Page();
-        }
+        LoadHeader();
+        LoadLink("home");
+        LoadFooter();
     }
     window.addEventListener("load", Start);
 })();

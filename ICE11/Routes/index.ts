@@ -26,7 +26,7 @@ router.get('/login', (req, res, next) => {
 
 // GET register
 router.get('/register', (req, res, next) => {
-    res.render('index', { title: 'Register', page: 'regsiter', displayName: '' })
+    res.render('index', { title: 'Register', page: 'register', displayName: '' })
 })
 
 // Temp Routes
@@ -36,7 +36,7 @@ router.get('/contact-list', (req, res, next) => {
 })
 //GET edit
 router.get('/edit', (req, res, next) => {
-    res.render('index', { title: 'Edit Contact', page: 'hoeditme', displayName: '' })
+    res.render('index', { title: 'Edit Contact', page: 'edit', displayName: '' })
 })
 
 export default router
